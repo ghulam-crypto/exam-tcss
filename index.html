@@ -48,7 +48,7 @@
   .err{color:var(--red);font-weight:600;font-size:.9rem;min-height:1.2em;margin-top:8px}
 
   /* ---------- exam ---------- */
-  #examScreen{display:flex;flex-direction:column;height:100vh;height:100dvh}
+  #examScreen{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
   .sub{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:8px 20px;flex-wrap:wrap}
   .sub .cand{display:flex;gap:10px;align-items:center;flex:1;min-width:200px}
   .avatar{width:40px;height:40px;border-radius:50%;background:var(--navy2);color:#fff;display:grid;place-items:center;font-weight:700;font-size:1.05rem}
@@ -62,22 +62,23 @@
   .clock.crit{border-color:var(--red);animation:blink 1s infinite}.clock.crit .lb{background:var(--red)}.clock.crit .tm{color:var(--red)}
   @keyframes blink{50%{opacity:.6}}
 
-  .body{flex:1;display:grid;grid-template-columns:1fr 300px;min-height:0}
+  .body{flex:1;display:grid;grid-template-columns:1fr 300px;min-height:0;min-width:0}
   @media(max-width:860px){
     #examScreen{height:auto;min-height:100vh;min-height:100dvh}
     .body{grid-template-columns:1fr;overflow:visible}
     .qarea{min-height:50vh}
     .side{min-height:360px}
   }
-  .qarea{display:flex;flex-direction:column;min-height:0;background:#fff;border-right:1px solid var(--line)}
+  .qarea{display:flex;flex-direction:column;min-height:0;min-width:0;background:#fff;border-right:1px solid var(--line)}
   .qtitle{display:flex;justify-content:space-between;align-items:center;background:#e8edf7;border-bottom:1px solid var(--line);padding:10px 20px;font-weight:700;color:var(--navy)}
   .qtitle .mk{font-weight:600;font-size:.85rem;color:#374151}
   .qscroll{flex:1;overflow:auto;padding:22px 24px}
-  .qtext{font-size:1.2rem;line-height:1.6;font-weight:600;white-space:pre-wrap;margin-bottom:20px}
+  .qtext{min-width:0;font-size:1.2rem;line-height:1.6;font-weight:600;white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:20px}
   .opt{display:flex;gap:14px;align-items:center;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:13px 16px;margin-bottom:10px;font-size:1.05rem;line-height:1.45;color:var(--ink)}
   .opt:hover{background:#f5f8ff;border-color:#93c5fd}
   .opt .rd{flex:0 0 22px;height:22px;border-radius:50%;border:2px solid #6b7280;display:grid;place-items:center}
   .opt .lt{font-weight:700;color:var(--navy);flex:0 0 22px}
+  .opt-text{flex:1;min-width:0;overflow-wrap:anywhere}
   .opt.sel{background:#eaf1ff;border-color:var(--blue)}
   .opt.sel .rd{border-color:var(--blue)}
   .opt.sel .rd::after{content:"";width:11px;height:11px;border-radius:50%;background:var(--blue)}
@@ -197,7 +198,7 @@
           <div class="ph">Instructions &ndash; Please read carefully</div>
           <div class="pb">
             <ol class="rules">
-              <li>The exam runs in <b>full-screen mode</b>. Do not exit full screen.</li>
+              <li>The exam runs in this browser window.</li>
               <li>Do <b>not</b> switch tabs, open another window or any other app during the exam.</li>
               <li>Copy, paste, right-click, screenshots and printing are disabled.</li>
               <li>Every such attempt is recorded as a <b>violation</b>. After the limit, your exam is <b>submitted automatically</b>.</li>
@@ -297,12 +298,6 @@
 </div>
 
 <!-- ================= OVERLAYS ================= -->
-<div class="overlay hidden" id="fsOverlay"><div class="modal">
-  <div class="mh red">Full Screen Required</div>
-  <div class="mb">The exam is paused until you return to full screen. <b>The timer keeps running.</b></div>
-  <div class="row"><button class="btn btn-primary" id="fsBtn">Return to Exam</button></div>
-</div></div>
-
 <div class="overlay hidden" id="warnOverlay"><div class="modal">
   <div class="mh red">&#9888; Violation Warning</div>
   <div class="mb" id="warnText"></div>
@@ -329,7 +324,6 @@ const STORE_KEY = 'csskb_exam_state';
 
 const $ = id => document.getElementById(id);
 let cfg = null, S = null, examOn = false, timerInt = null, lastV = 0;
-const canFS = !!document.documentElement.requestFullscreen;
 
 function show(id, on = true){ $(id).classList.toggle('hidden', !on); }
 function el(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text !== undefined) e.textContent = text; return e; }
@@ -369,7 +363,6 @@ $('startBtn').onclick = async () => {
   $('loginErr').textContent = '';
   if(name.length < 3 || !cls){ $('loginErr').textContent = 'Please enter your full name and class.'; return; }
   $('startBtn').disabled = true; $('startBtn').textContent = 'Loading questions...';
-  if(canFS){ try{ await document.documentElement.requestFullscreen(); }catch(e){} }
   try{
     const res = await api({ action:'start', name, cls });
     if(!res.ok) throw new Error(res.error);
@@ -378,7 +371,6 @@ $('startBtn').onclick = async () => {
           endTime: Date.now() + res.durationSec * 1000, violations:0, submitting:false, done:false };
     save(); beginExam();
   }catch(e){
-    if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
     $('loginErr').textContent = e.message;
     $('startBtn').disabled = false; $('startBtn').textContent = 'Start Exam';
   }
@@ -404,7 +396,6 @@ function beginExam(resumed){
   $('exSubject').textContent = cfg.subject; $('exMarks').textContent = cfg.totalMarks;
   buildPalette(); renderQ(); tick();
   clearInterval(timerInt); timerInt = setInterval(tick, 500);
-  if(canFS && !document.fullscreenElement) show('fsOverlay');
   if(resumed && S.violations >= cfg.maxViolations){ submit('Auto-submitted (violations): reload'); }
   else if(resumed){ showWarn('The page was reloaded.'); }
 }
@@ -446,7 +437,7 @@ function renderQ(){
   const box = $('opts'); box.innerHTML = '';
   q.options.forEach((o, i) => {
     const b = el('button', 'opt' + (S.answers[S.cur] === i ? ' sel' : ''));
-    b.append(el('span', 'rd'), el('span', 'lt', 'ABCD'[i] + '.'), el('span', '', o));
+    b.append(el('span', 'rd'), el('span', 'lt', 'ABCD'[i] + '.'), el('span', 'opt-text', o));
     b.onclick = () => { S.answers[S.cur] = i; save(); renderQ(); };
     box.append(b);
   });
@@ -479,7 +470,7 @@ $('confirmYes').onclick = () => { show('confirmOverlay', false); submit('Submitt
 async function submit(status){
   if(S.submitting || S.done) return;
   S.submitting = true; S.lastStatus = status;
-  show('warnOverlay', false); show('confirmOverlay', false); show('fsOverlay', false);
+  show('warnOverlay', false); show('confirmOverlay', false);
   $('busyTitle').textContent = 'Submitting...'; $('busyText').textContent = 'Please wait. Do not close this window.';
   show('retryBtn', false); show('busyOverlay');
   try{
@@ -488,7 +479,6 @@ async function submit(status){
     S.done = true; examOn = false; clearInterval(timerInt);
     sessionStorage.removeItem(STORE_KEY);
     show('busyOverlay', false);
-    if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
     showResult(res);
   }catch(e){
     S.submitting = false;
@@ -525,21 +515,10 @@ function violation(reason){
   if(S.violations >= cfg.maxViolations){ submit('Auto-submitted (violations): ' + reason); return; }
   showWarn(reason);
 }
-$('warnOk').onclick = () => {
-  show('warnOverlay', false);
-  if(canFS && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
-};
-$('fsBtn').onclick = async () => {
-  try{ await document.documentElement.requestFullscreen(); show('fsOverlay', false); }catch(e){}
-};
+$('warnOk').onclick = () => show('warnOverlay', false);
 
 document.addEventListener('visibilitychange', () => { if(document.hidden) violation('You left the exam window.'); });
 window.addEventListener('blur', () => violation('You switched to another window or app.'));
-document.addEventListener('fullscreenchange', () => {
-  if(!examOn || !S || S.done || S.submitting) return;
-  if(!document.fullscreenElement){ show('fsOverlay'); violation('You exited full screen.'); }
-  else show('fsOverlay', false);
-});
 window.addEventListener('beforeprint', () => violation('Printing is not allowed.'));
 window.addEventListener('beforeunload', e => { if(examOn && S && !S.done){ e.preventDefault(); e.returnValue = ''; } });
 
