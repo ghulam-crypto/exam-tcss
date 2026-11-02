@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Online Examination - The Creative School System</title>
 <style>
   :root{
@@ -10,7 +10,7 @@
     --green:#16a34a;--red:#dc2626;--purple:#7c3aed;--amber:#d97706;--white:#fff;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-text-size-adjust:100%}
   button{font:inherit;cursor:pointer;border:0}
   button:disabled{opacity:.45;cursor:not-allowed}
   .hidden{display:none!important}
@@ -51,7 +51,7 @@
   #examScreen{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
   .sub{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:8px 20px;flex-wrap:wrap}
   .sub .cand{display:flex;gap:10px;align-items:center;flex:1;min-width:200px}
-  .avatar{width:40px;height:40px;border-radius:50%;background:var(--navy2);color:#fff;display:grid;place-items:center;font-weight:700;font-size:1.05rem}
+  .avatar{width:40px;height:40px;border-radius:50%;background:var(--navy2);color:#fff;display:grid;place-items:center;font-weight:700;font-size:1.05rem;flex:0 0 auto}
   .cand b{display:block;font-size:.95rem}.cand span{font-size:.8rem;color:var(--muted)}
   .meta{display:flex;gap:18px;font-size:.8rem;color:var(--muted)}
   .meta b{display:block;color:var(--ink);font-size:.95rem}
@@ -63,16 +63,10 @@
   @keyframes blink{50%{opacity:.6}}
 
   .body{flex:1;display:grid;grid-template-columns:1fr 300px;min-height:0;min-width:0}
-  @media(max-width:860px){
-    #examScreen{height:auto;min-height:100vh;min-height:100dvh}
-    .body{grid-template-columns:1fr;overflow:visible}
-    .qarea{min-height:50vh}
-    .side{min-height:360px}
-  }
   .qarea{display:flex;flex-direction:column;min-height:0;min-width:0;background:#fff;border-right:1px solid var(--line)}
   .qtitle{display:flex;justify-content:space-between;align-items:center;background:#e8edf7;border-bottom:1px solid var(--line);padding:10px 20px;font-weight:700;color:var(--navy)}
   .qtitle .mk{font-weight:600;font-size:.85rem;color:#374151}
-  .qscroll{flex:1;overflow:auto;padding:22px 24px}
+  .qscroll{flex:1;overflow:auto;padding:22px 24px;-webkit-overflow-scrolling:touch}
   .qtext{min-width:0;font-size:1.2rem;line-height:1.6;font-weight:600;white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:20px}
   .opt{display:flex;gap:14px;align-items:center;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:13px 16px;margin-bottom:10px;font-size:1.05rem;line-height:1.45;color:var(--ink)}
   .opt:hover{background:#f5f8ff;border-color:#93c5fd}
@@ -84,13 +78,14 @@
   .opt.sel .rd::after{content:"";width:11px;height:11px;border-radius:50%;background:var(--blue)}
   .actions{display:flex;gap:10px;flex-wrap:wrap;padding:12px 20px;border-top:1px solid var(--line);background:#f8fafc}
   .actions .sp{flex:1}
+  #palBtn{display:none}
 
   .side{background:#f8fafc;display:flex;flex-direction:column;min-height:0}
-  .side .ph{background:var(--navy2);color:#fff;font-weight:600;padding:9px 14px;font-size:.88rem}
+  .side .ph{background:var(--navy2);color:#fff;font-weight:600;padding:9px 14px;font-size:.88rem;display:flex;justify-content:space-between;align-items:center}
+  #sideClose{display:none;background:rgba(255,255,255,.18);color:#fff;border-radius:4px;padding:4px 12px;font-size:.85rem;font-weight:600}
   .legend{display:grid;grid-template-columns:1fr 1fr;gap:8px 6px;padding:12px;font-size:.78rem;border-bottom:1px solid var(--line);background:#fff}
   .legend div{display:flex;gap:7px;align-items:center}
   .pal{flex:1;overflow:auto;padding:12px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-content:start}
-  @media(max-width:860px){.pal{grid-template-columns:repeat(8,1fr)}}
   .pb{position:relative}
   .sq{width:100%;aspect-ratio:1;display:grid;place-items:center;font-weight:700;font-size:.88rem;border-radius:5px 5px 14px 14px;border:1.5px solid #9ca3af;background:#fff;color:#374151;padding:0}
   .sq.nvis{background:#fff;color:#374151}
@@ -102,10 +97,11 @@
   .legend .sq{width:22px;height:22px;font-size:.7rem;flex:0 0 22px}
   .sidefoot{padding:12px;border-top:1px solid var(--line);background:#fff}
   .cnt{display:flex;justify-content:space-between;font-size:.8rem;color:#374151;margin-bottom:10px}
+  .backdrop{display:none}
 
   /* ---------- overlays ---------- */
   .overlay{position:fixed;inset:0;background:rgba(17,24,39,.9);z-index:60;display:grid;place-items:center;padding:18px}
-  .modal{background:#fff;border-radius:8px;max-width:480px;width:100%;overflow:hidden;text-align:center}
+  .modal{background:#fff;border-radius:8px;max-width:480px;width:100%;overflow:hidden;text-align:center;max-height:100%;overflow-y:auto}
   .modal .mh{background:var(--navy);color:#fff;padding:12px;font-weight:700}
   .modal .mh.red{background:var(--red)}
   .modal .mb{padding:20px;line-height:1.6;color:#1f2937}
@@ -124,6 +120,55 @@
   #examScreen,#examScreen *{-webkit-user-select:none;user-select:none}
   @media print{html,body{display:none!important}}
 
+  /* =====================================================
+     MOBILE / TABLET EXAM LAYOUT  (app-style, fits screen)
+     - compact top bar with timer always visible
+     - question + options scroll in the middle
+     - action buttons fixed at the bottom
+     - question palette opens as a slide-up panel
+     ===================================================== */
+  @media(max-width:860px){
+    #examScreen{height:100vh;height:100dvh;min-height:0;overflow:hidden}
+    #examScreen>.hdr{display:none}
+
+    .sub{flex:0 0 auto;display:flex;flex-wrap:nowrap;gap:10px;padding:6px 10px;padding-top:max(6px,env(safe-area-inset-top))}
+    .sub .cand{min-width:0;gap:8px}
+    .avatar{width:34px;height:34px;font-size:.95rem}
+    .cand>div{min-width:0}
+    .cand b{font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .cand span{font-size:.74rem}
+    .meta{display:none}
+    .clock{min-width:88px;flex:0 0 auto;border-width:1.5px}
+    .clock .lb{font-size:.6rem}
+    .clock .tm{font-size:1.3rem;padding:0 8px}
+
+    .body{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+    .qarea{flex:1;min-height:0;border-right:0}
+    .qtitle{flex:0 0 auto;padding:8px 12px;font-size:.88rem}
+    .qtitle .mk{font-size:.78rem}
+    .qscroll{flex:1;min-height:0;overflow-y:auto;padding:14px 12px}
+    .qtext{font-size:1.05rem;line-height:1.5;margin-bottom:14px}
+    .opt{gap:10px;padding:11px 12px;font-size:1rem;min-height:48px;margin-bottom:8px}
+
+    .actions{flex:0 0 auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:8px 10px;padding-bottom:max(8px,env(safe-area-inset-bottom));box-shadow:0 -2px 8px rgba(0,0,0,.08)}
+    .actions .sp{display:none}
+    .actions .btn{width:100%;min-height:42px;padding:8px 6px;font-size:.82rem}
+    #palBtn{display:block}
+    #markBtn{grid-column:1 / 3}
+    #saveBtn{grid-column:3}
+
+    /* palette becomes a slide-up sheet */
+    .side{position:fixed;left:0;right:0;bottom:0;z-index:55;max-height:80vh;max-height:80dvh;border-top:2px solid var(--navy2);border-radius:12px 12px 0 0;overflow:hidden;transform:translateY(105%);transition:transform .25s ease;box-shadow:0 -6px 24px rgba(0,0,0,.3)}
+    .side.open{transform:translateY(0)}
+    #sideClose{display:block}
+    .legend{grid-template-columns:1fr 1fr 1fr;gap:6px 4px;padding:8px 10px;font-size:.7rem}
+    .legend .sq{width:18px;height:18px;flex-basis:18px;font-size:.6rem;min-height:0}
+    .pal{flex:1;min-height:0;overflow-y:auto;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:8px;padding:10px}
+    .sq{min-height:40px;border-radius:6px;font-size:.85rem}
+    .sidefoot{padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+    .backdrop:not(.hidden){display:block;position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:50}
+  }
+
   @media(max-width:640px){
     .hdr{gap:10px;padding:12px 14px}
     .crest{width:40px;height:40px;flex-basis:40px;font-size:.85rem}
@@ -135,47 +180,14 @@
     table.info td{padding:8px}
     ol.rules{font-size:.88rem;line-height:1.6}
     .btn{min-height:44px;padding:10px 12px}
-
-    #examScreen{height:auto;min-height:100vh;min-height:100dvh}
-    .sub{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:10px 12px}
-    .sub .cand{min-width:0;gap:8px}
-    .avatar{width:36px;height:36px}
-    .cand b{max-width:45vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .meta{grid-column:1/-1;justify-content:space-between;gap:12px;padding-left:44px}
-    .meta>div{min-width:0}
-    .meta b{overflow-wrap:anywhere}
-    .clock{min-width:96px}
-    .clock .tm{font-size:1.35rem}
-
-    .body{flex:1;grid-template-columns:minmax(0,1fr);overflow:visible}
-    .qarea{min-height:0;border-right:0}
-    .qtitle{padding:10px 14px;gap:12px}
-    .qtitle .mk{text-align:right}
-    .qscroll{flex:none;overflow:visible;padding:18px 14px}
-    .qtext{font-size:1.08rem;line-height:1.55;overflow-wrap:anywhere}
-    .opt{gap:10px;padding:12px;font-size:1rem;min-height:52px}
-    .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px 12px}
-    .actions .sp{display:none}
-    .actions .btn{width:100%;font-size:.88rem}
-    #markBtn{grid-column:1/-1}
-
-    .side{min-height:0;border-top:1px solid var(--line)}
-    .side .ph{padding:11px 14px}
-    .legend{gap:8px 4px;padding:10px;font-size:.72rem}
-    .pal{flex:none;max-height:220px;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:7px;padding:10px}
-    .sq{min-height:38px;border-radius:5px;font-size:.82rem}
-    .sidefoot{padding:10px 12px}
-    .cnt{gap:10px;font-size:.75rem}
     .overlay{padding:12px}
     .modal .mb{padding:16px}
     .modal .row{padding:0 12px 14px}
   }
-
   @media(max-width:360px){
-    .meta{padding-left:0}
-    .actions{grid-template-columns:1fr}
-    #markBtn{grid-column:auto}
-    .cnt{flex-direction:column}
+    .actions .btn{font-size:.76rem}
+    .clock{min-width:78px}
+    .clock .tm{font-size:1.15rem}
   }
 </style>
 </head>
@@ -247,21 +259,22 @@
   <div class="body">
     <div class="qarea">
       <div class="qtitle"><span id="qNum"></span><span class="mk" id="qMarks"></span></div>
-      <div class="qscroll">
+      <div class="qscroll" id="qscroll">
         <div class="qtext" id="qText"></div>
         <div id="opts"></div>
       </div>
       <div class="actions">
         <button class="btn btn-light" id="prevBtn">&laquo; Previous</button>
         <button class="btn btn-light" id="clearBtn">Clear Response</button>
+        <button class="btn btn-light" id="palBtn">&#9776; Palette</button>
         <span class="sp"></span>
         <button class="btn btn-purple" id="markBtn">Mark for Review &amp; Next</button>
         <button class="btn btn-green" id="saveBtn">Save &amp; Next &raquo;</button>
       </div>
     </div>
 
-    <div class="side">
-      <div class="ph">Question Palette</div>
+    <div class="side" id="side">
+      <div class="ph"><span>Question Palette</span><button id="sideClose">Close &#10005;</button></div>
       <div class="legend" id="legend"></div>
       <div class="pal" id="pal"></div>
       <div class="sidefoot">
@@ -270,6 +283,7 @@
       </div>
     </div>
   </div>
+  <div class="backdrop hidden" id="backdrop"></div>
 </div>
 
 <!-- ================= RESULT ================= -->
@@ -419,7 +433,7 @@ function buildLegend(){
 }
 function buildPalette(){
   const p = $('pal'); p.innerHTML = '';
-  S.questions.forEach((q, i) => { const b = el('button', 'sq nvis', String(i + 1)); b.onclick = () => go(i); p.append(b); });
+  S.questions.forEach((q, i) => { const b = el('button', 'sq nvis', String(i + 1)); b.onclick = () => { go(i); closePal(); }; p.append(b); });
 }
 function go(i){ S.cur = i; save(); renderQ(); }
 function updatePalette(){
@@ -438,9 +452,10 @@ function renderQ(){
   q.options.forEach((o, i) => {
     const b = el('button', 'opt' + (S.answers[S.cur] === i ? ' sel' : ''));
     b.append(el('span', 'rd'), el('span', 'lt', 'ABCD'[i] + '.'), el('span', 'opt-text', o));
-    b.onclick = () => { S.answers[S.cur] = i; save(); renderQ(); };
+    b.onclick = () => { const sc = $('qscroll').scrollTop; S.answers[S.cur] = i; save(); renderQ(); $('qscroll').scrollTop = sc; };
     box.append(b);
   });
+  $('qscroll').scrollTop = 0;
   $('prevBtn').disabled = S.cur === 0;
   $('saveBtn').textContent = S.cur === n - 1 ? 'Save & Finish' : 'Save & Next \u00bb';
   $('clearBtn').disabled = S.answers[S.cur] === undefined;
@@ -451,7 +466,14 @@ $('prevBtn').onclick = () => { if(S.cur > 0) go(S.cur - 1); };
 $('clearBtn').onclick = () => { delete S.answers[S.cur]; save(); renderQ(); };
 $('saveBtn').onclick = () => { S.flags[S.cur] = false; next(); };
 $('markBtn').onclick = () => { S.flags[S.cur] = true; next(); };
-$('submitBtn').onclick = askSubmit;
+$('submitBtn').onclick = () => { closePal(); askSubmit(); };
+
+/* ---------- mobile palette drawer ---------- */
+function openPal(){ $('side').classList.add('open'); show('backdrop'); }
+function closePal(){ $('side').classList.remove('open'); show('backdrop', false); }
+$('palBtn').onclick = openPal;
+$('sideClose').onclick = closePal;
+$('backdrop').onclick = closePal;
 
 function askSubmit(){
   const n = S.questions.length, a = Object.keys(S.answers).length;
@@ -470,6 +492,7 @@ $('confirmYes').onclick = () => { show('confirmOverlay', false); submit('Submitt
 async function submit(status){
   if(S.submitting || S.done) return;
   S.submitting = true; S.lastStatus = status;
+  closePal();
   show('warnOverlay', false); show('confirmOverlay', false);
   $('busyTitle').textContent = 'Submitting...'; $('busyText').textContent = 'Please wait. Do not close this window.';
   show('retryBtn', false); show('busyOverlay');
